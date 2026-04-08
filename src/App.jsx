@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 // 1. Paste your actual keys here!
-const supabaseUrl = 'https://your-actual-project-url.supabase.co';
-const supabaseKey = 'your-actual-long-anon-key-string';
+const supabaseUrl = 'https://rwnbsxsgbhhugcpjzzqm.supabase.co'; 
+const supabaseKey = 'sb_publishable_kMhj79N50BNWXKNPShR9lw_Z74a1_fV';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function App() {
@@ -16,11 +16,7 @@ export default function App() {
 
   async function fetchFiles() {
     // Fetches files and orders them neatly by ID
-    const { data, error } = await supabase
-      .from('files')
-      .select('*')
-      .order('id', { ascending: true });
-
+    const { data, error } = await supabase.from('files').select('*').order('id', { ascending: true });
     if (!error && data) {
       setFiles(data);
     } else {
