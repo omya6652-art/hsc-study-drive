@@ -1,98 +1,195 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { ChevronDown, FileText, HardDrive } from 'lucide-react';
 
-// Replace the text inside the quotes with the actual values from your Supabase API settings
-const supabaseUrl = 'https://rwnbsxsgbhhugcpjzzqm.supabase.co';
-const supabaseKey = 'sb_publishable_kMhj79N50BNWXKNPShR9lw_Z74a1_fV';
-
+// 1. Paste your actual keys here!
+const supabaseUrl = 'https://your-actual-project-url.supabase.co';
+const supabaseKey = 'your-actual-long-anon-key-string';
 const supabase = createClient(supabaseUrl, supabaseKey);
-function App() {
-  const [sections, setSections] = useState({});
-  const [openSection, setOpenSection] = useState(null);
+
+export default function App() {
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchFiles() {
-      // Grab everything from the 'files' table
-      const { data, error } = await supabase.from('files').select('*');
-      
-      if (error) {
-        console.error("Error fetching data:", error);
-        return;
-      }
-
-      if (data) {
-        // Group the files automatically by whatever category you type in Supabase
-        const grouped = data.reduce((acc, file) => {
-          acc[file.category] = acc[file.category] || [];
-          acc[file.category].push(file);
-          return acc;
-        }, {});
-        setSections(grouped);
-      }
-    }
-    
     fetchFiles();
   }, []);
 
+  async function fetchFiles() {
+    // Fetches files and orders them neatly by ID
+    const { data, error } = await supabase
+      .from('files')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (!error && data) {
+      setFiles(data);
+    } else {
+      console.error("Error fetching data:", error);
+    }
+    setLoading(false);
+  }
+
   return (
-    <div className="min-h-screen bg-[#111] text-zinc-300 p-5 font-sans">
-      <div className="max-w-md mx-auto">
-        
-        {/* Header Section */}
-        <header className="flex items-center gap-2 mb-8 py-4 border-b border-zinc-800">
-          <HardDrive className="text-blue-500" size={24} />
-          <h1 className="text-base font-bold tracking-widest uppercase text-white">HSC Resource Vault</h1>
-        </header>
+    <div style={styles.container}>
+      {/* Background Graphic / Header */}
+      <header style={styles.header}>
+        <div style={styles.headerGlow}></div>
+        <h1 style={styles.title}>HSC Resource Vault</h1>
+        <p style={styles.subtitle}>Your central drive for study materials and notes</p>
+      </header>
 
-        {/* Dynamic Sections */}
-        <div className="space-y-4">
-          {Object.keys(sections).length === 0 && (
-            <p className="text-center text-zinc-500 text-sm mt-10">Vault is empty. Add files via Supabase.</p>
-          )}
-          
-          {Object.keys(sections).map((category) => (
-            <div key={category} className="bg-[#1a1a1a] rounded-xl overflow-hidden border border-zinc-800 shadow-lg">
-              
-              {/* Dropdown Button */}
-              <button 
-                onClick={() => setOpenSection(openSection === category ? null : category)}
-                className="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors"
-              >
-                <span className="font-bold text-white text-sm uppercase tracking-wider">{category}</span>
-                <ChevronDown 
-                  size={18} 
-                  className={`text-zinc-400 transition-transform duration-300 ${openSection === category ? '' : '-rotate-90'}`} 
-                />
-              </button>
-
-              {/* The Files inside the Dropdown */}
-              {openSection === category && (
-                <div className="px-4 pb-4 space-y-3 pt-2 border-t border-zinc-800/50 bg-[#141414]">
-                  {sections[category].map((file) => (
-                    <div key={file.id} className="flex items-center justify-between p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <FileText size={18} className="text-blue-400 flex-shrink-0" />
-                        <span className="text-sm text-zinc-200 truncate">{file.title}</span>
-                      </div>
-                      <a 
-                        href={file.file_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-bold bg-blue-600 hover:bg-blue-500 transition-colors text-white px-3 py-1.5 rounded flex-shrink-0 ml-2"
-                      >
-                        OPEN
-                      </a>
-                    </div>
-                  ))}
+      {/* Main Content Area */}
+      <main style={styles.main}>
+        {loading ? (
+          <div style={styles.loading}>Loading your resources...</div>
+        ) : files.length === 0 ? (
+          <div style={styles.empty}>No materials found. Add some in Supabase!</div>
+        ) : (
+          <div style={styles.grid}>
+            {files.map((file) => (
+              <div key={file.id} style={styles.card} className="file-card">
+                
+                {/* Category Badge */}
+                <div style={styles.cardHeader}>
+                  <span style={styles.badge}>{file.category || 'General'}</span>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+
+                {/* File Title */}
+                <h2 style={styles.cardTitle}>{file.title}</h2>
+
+                {/* Open Button */}
+                <a 
+                  href={file.file_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  style={styles.button}
+                >
+                  <svg style={styles.icon} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  Open Material
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* Injecting a tiny bit of CSS for the hover effects */}
+      <style>{`
+        body { margin: 0; background-color: #0f172a; color: white; font-family: 'Inter', system-ui, sans-serif; }
+        .file-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .file-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3); }
+        .file-card a:hover { background-color: #2563eb !important; }
+      `}</style>
     </div>
   );
 }
 
-export default App;
+// Inline styles for a clean, 1-file setup
+const styles = {
+  container: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '2rem 1rem',
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: '3rem',
+    position: 'relative',
+  },
+  headerGlow: {
+    position: 'absolute',
+    top: '-50%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '300px',
+    height: '300px',
+    background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(15,23,42,0) 70%)',
+    zIndex: -1,
+  },
+  title: {
+    fontSize: '2.5rem',
+    fontWeight: '800',
+    margin: '0 0 0.5rem 0',
+    background: 'linear-gradient(to right, #60a5fa, #3b82f6)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  },
+  subtitle: {
+    fontSize: '1.1rem',
+    color: '#94a3b8',
+    margin: 0,
+  },
+  main: {
+    width: '100%',
+    maxWidth: '1000px',
+  },
+  loading: {
+    textAlign: 'center',
+    color: '#94a3b8',
+    fontSize: '1.2rem',
+    padding: '3rem',
+  },
+  empty: {
+    textAlign: 'center',
+    color: '#64748b',
+    padding: '3rem',
+    border: '2px dashed #334155',
+    borderRadius: '12px',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '1.5rem',
+  },
+  card: {
+    backgroundColor: '#1e293b',
+    borderRadius: '12px',
+    padding: '1.5rem',
+    border: '1px solid #334155',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+  cardHeader: {
+    marginBottom: '1rem',
+  },
+  badge: {
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    color: '#60a5fa',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '9999px',
+    fontSize: '0.75rem',
+    fontWeight: '700',
+    letterSpacing: '0.05em',
+    textTransform: 'uppercase',
+  },
+  cardTitle: {
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    color: '#f8fafc',
+    margin: '0 0 1.5rem 0',
+    lineHeight: '1.4',
+  },
+  button: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#3b82f6',
+    color: '#ffffff',
+    textDecoration: 'none',
+    padding: '0.75rem 1rem',
+    borderRadius: '8px',
+    fontWeight: '600',
+    fontSize: '0.9rem',
+    transition: 'background-color 0.2s',
+    gap: '0.5rem',
+  },
+  icon: {
+    width: '18px',
+    height: '18px',
+  }
+};
