@@ -3,10 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import { ChevronDown, FileText, HardDrive } from 'lucide-react';
 
 // Connect to the Supabase database using the hidden keys
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_DB_LINK;
+const supabaseKey = import.meta.env.VITE_DB_SECRET;
 const supabase = createClient(supabaseUrl, supabaseKey);
-
 function App() {
   const [sections, setSections] = useState({});
   const [openSection, setOpenSection] = useState(null);
