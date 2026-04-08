@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { ChevronDown, FileText, HardDrive } from 'lucide-react';
 
-// Connect to the Supabase database using the hidden keys
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Replace the text inside the quotes with the actual values from your Supabase API settings
+const supabaseUrl = 'https://rwnbsxsgbhhugcpjzzqm.supabase.co';
+const supabaseKey = 'sb_publishable_kMhj79N50BNWXKNPShR9lw_Z74a1_fV';
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 function App() {
   const [sections, setSections] = useState({});
