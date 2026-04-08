@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { ChevronDown, FileText, Download, HardDrive } from 'lucide-react';
+import { ChevronDown, FileText, HardDrive } from 'lucide-react';
 
-// Connects to your database
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+// Connect to the Supabase database using the hidden keys
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 function App() {
   const [sections, setSections] = useState({});
@@ -11,9 +13,16 @@ function App() {
 
   useEffect(() => {
     async function fetchFiles() {
-      const { data } = await supabase.from('files').select('*');
+      // Grab everything from the 'files' table
+      const { data, error } = await supabase.from('files').select('*');
+      
+      if (error) {
+        console.error("Error fetching data:", error);
+        return;
+      }
+
       if (data) {
-        // This logic groups your files into "Test 1", "Test 2", etc.
+        // Group the files automatically by whatever category you type in Supabase
         const grouped = data.reduce((acc, file) => {
           acc[file.category] = acc[file.category] || [];
           acc[file.category].push(file);
@@ -22,40 +31,57 @@ function App() {
         setSections(grouped);
       }
     }
+    
     fetchFiles();
   }, []);
 
   return (
     <div className="min-h-screen bg-[#111] text-zinc-300 p-5 font-sans">
       <div className="max-w-md mx-auto">
+        
+        {/* Header Section */}
         <header className="flex items-center gap-2 mb-8 py-4 border-b border-zinc-800">
-          <HardDrive className="text-blue-500" size={20} />
-          <h1 className="text-sm font-bold tracking-widest uppercase text-white">HSC Resource Vault</h1>
+          <HardDrive className="text-blue-500" size={24} />
+          <h1 className="text-base font-bold tracking-widest uppercase text-white">HSC Resource Vault</h1>
         </header>
 
-        <div className="space-y-3">
-          {Object.keys(sections).length === 0 && <p className="text-center text-zinc-600">No files found. Add rows in Supabase!</p>}
+        {/* Dynamic Sections */}
+        <div className="space-y-4">
+          {Object.keys(sections).length === 0 && (
+            <p className="text-center text-zinc-500 text-sm mt-10">Vault is empty. Add files via Supabase.</p>
+          )}
           
           {Object.keys(sections).map((category) => (
-            <div key={category} className="bg-[#1a1a1a] rounded-lg overflow-hidden border border-zinc-800">
+            <div key={category} className="bg-[#1a1a1a] rounded-xl overflow-hidden border border-zinc-800 shadow-lg">
+              
+              {/* Dropdown Button */}
               <button 
                 onClick={() => setOpenSection(openSection === category ? null : category)}
-                className="w-full flex items-center justify-between p-4"
+                className="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors"
               >
-                <span className="font-bold text-white text-xs uppercase tracking-wider">{category}</span>
-                <ChevronDown size={16} className={`transition-transform ${openSection === category ? '' : '-rotate-90'}`} />
+                <span className="font-bold text-white text-sm uppercase tracking-wider">{category}</span>
+                <ChevronDown 
+                  size={18} 
+                  className={`text-zinc-400 transition-transform duration-300 ${openSection === category ? '' : '-rotate-90'}`} 
+                />
               </button>
 
+              {/* The Files inside the Dropdown */}
               {openSection === category && (
-                <div className="px-4 pb-4 space-y-3 pt-2 border-t border-zinc-800/50">
+                <div className="px-4 pb-4 space-y-3 pt-2 border-t border-zinc-800/50 bg-[#141414]">
                   {sections[category].map((file) => (
-                    <div key={file.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FileText size={16} className="text-zinc-500" />
-                        <span className="text-sm">{file.title}</span>
+                    <div key={file.id} className="flex items-center justify-between p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <FileText size={18} className="text-blue-400 flex-shrink-0" />
+                        <span className="text-sm text-zinc-200 truncate">{file.title}</span>
                       </div>
-                      <a href={file.file_url} target="_blank" className="text-[10px] font-bold bg-blue-600 text-white px-2 py-1 rounded">
-                        GET FILE
+                      <a 
+                        href={file.file_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-bold bg-blue-600 hover:bg-blue-500 transition-colors text-white px-3 py-1.5 rounded flex-shrink-0 ml-2"
+                      >
+                        OPEN
                       </a>
                     </div>
                   ))}
